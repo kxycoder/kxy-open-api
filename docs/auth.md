@@ -1,0 +1,11 @@
+refresh_token: 当access_token过期时，使用refresh_token获取新的access_token
+
+access_token: 每次访问api的时候需要带上
+
+
+这么做的目的：
+  减少refresh_token的使用次数，不经过网络传输，降低被获取风险，如果acccess_token被抓取,一段时间就失效了，减少影响时间
+
+
+一般流程：
+给你一个key,然后通过这个key你可以获取一个access_token,然后过一段时间后，这个access_token就会过期，然后你需要使用key再次获取一个新的access_token

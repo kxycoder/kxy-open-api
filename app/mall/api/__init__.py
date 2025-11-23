@@ -1,0 +1,3 @@
+from kxy.framework.auto_register import auto_regist_routes
+
+router = auto_regist_routes("app.mall.api","/api/mall")

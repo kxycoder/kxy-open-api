@@ -1,0 +1,1 @@
+python3.10 /data/source/mytool/publish/publish_kxy_open_code.py
