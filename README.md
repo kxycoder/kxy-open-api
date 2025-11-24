@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/github/license/YunaiV/ruoyi-vue-pro" alt="License">
 </p>
 
-<h1 align="center">快享云 Mall 商城系统</h1>
+<h1 align="center">快享云 python 商城系统</h1>
 
 <p align="center">
   <b>基于 Python + FastAPI + Vue3 的开源商城系统</b>
@@ -22,7 +22,7 @@
 
 ## 🎯 项目介绍
 
-这是一个使用 **Python + FastAPI** 开发的开源 Mall 商城后端项目，基于 [RuoYi-Vue-Plus](https://gitee.com/zhijiantianya/ruoyi-vue-plus) 构建。
+这是一个使用 **Python + FastAPI** 开发的开源 Mall 商城后端项目，前端基于芋道 RuoYi-Vue-Plus 构建。
 
 > **郑重声明：现在及未来都不会有商业版本，所有代码全部开源！**
 
