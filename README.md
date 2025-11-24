@@ -29,6 +29,9 @@
 如果本项目对你有帮助，欢迎 Star ⭐️，这将是对我们最大的鼓励！
 
 ---
+### 演示地址：
+
+http://open-code.forwework.com/
 
 ## 🐶 新手必读
 
@@ -43,11 +46,12 @@
 
 1. 短信对接阿里云
 2. 企微授权登录
-3. 微信授权登录
+3. 钉钉授权登录
 4. 简单服务器日志查询
 5. 日志调用链
 6. 配置文件支持环境变量优先
-
+7. ORM
+8. 数据权限/接口权限
 ---
 
 ## 🚀 快速开始
@@ -59,7 +63,7 @@ pip install -r requirements.txt -i http://mirrors.aliyun.com/pypi/simple/ --trus
 # 需要先调整 config.py 中的数据库、redis 配置，其他配置可自行修改
 uvicorn app.main:app --host 0.0.0.0 --port 5001
 ```
-前端项目地址：https://github.com/kxycoder/kxy-open-code-ui
+前端项目地址：https://gitee.com/kxy-open/open-code-admin-ui.git
 ---
 
 ## 🐯 平台简介
@@ -161,5 +165,6 @@ uvicorn app.main:app --host 0.0.0.0 --port 5001
 
 ---
 
-加入我的知识星球，一起学习、一起进步
+### 加入我的知识星球，一起学习、一起进步,星球内有学习视频，数据库脚本，开源不易，多多支持
+
 ![alt text](image.png)
