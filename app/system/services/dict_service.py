@@ -24,8 +24,6 @@ class DictService(BaseService):
         entity=SystemDictData()
         entity.InitInsertEntityWithJson(jsonData)
         exist =await typeDal.GetByType(entity.dictType)
-        if exist and exist.tenantId != self.tenantId:
-            raise FriendlyException("不能操作系统默认字典")
         await dal.Insert(entity)
         return entity
     async def SaveAll(self,jsonData):
