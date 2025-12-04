@@ -20,3 +20,7 @@ class IMenuService(ABC):
     async def GetUserMenu(self, clearCache=False):
         pass
 
+    @abstractmethod
+    async def Delete(self, id):
+        pass
+

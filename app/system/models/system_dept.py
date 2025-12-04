@@ -2,6 +2,7 @@ from app.database import Base
 from app.common.base_entity import BaseEntity
 from sqlalchemy import Column, DateTime, Integer, String, BigInteger
 from kxy.framework.filter import FilterTenant
+from kxy.framework.base_entity import JSONString
 
 @FilterTenant('tenantId')
 class SystemDept(BaseEntity, Base):
@@ -14,6 +15,7 @@ class SystemDept(BaseEntity, Base):
     parentId = Column('parent_id',BigInteger, comment='父部门id')
     sort = Column('sort',Integer, comment='显示顺序')
     leaderUserId = Column('leader_user_id',BigInteger, comment='负责人')
+    defaultRoles = Column('default_roles',JSONString(255), comment='默认角色')
     phone = Column('phone',String(11), comment='联系电话')
     email = Column('email',String(50), comment='邮箱')
     status = Column('status',Integer, comment='部门状态（0正常 1停用）')
@@ -27,7 +29,7 @@ class SystemDept(BaseEntity, Base):
 
     InsertRequireFields = []
 
-    InsertOtherFields= ['name', 'leaderUserId', 'phone', 'email','parentId', 'sort', 'status', 'tenantId']
+    InsertOtherFields= ['name', 'leaderUserId','defaultRoles', 'phone', 'email','parentId', 'sort', 'status', 'tenantId']
 
     def to_basic_dict(self):
         """返回基本信息"""
@@ -37,6 +39,7 @@ class SystemDept(BaseEntity, Base):
            'parentId': self.parentId,
            'sort': self.sort,
            'leaderUserId': self.leaderUserId,
+           'defaultRoles': self.defaultRoles,
            'phone': self.phone,
            'email': self.email,
            'status': self.status,
@@ -57,13 +60,13 @@ class SystemDept(BaseEntity, Base):
            'parentId': self.parentId,
            'sort': self.sort,
            'leaderUserId': self.leaderUserId,
+           'defaultRoles': self.defaultRoles,
            'phone': self.phone,
            'email': self.email,
            'tenantId': self.tenantId,
-
         }
         return resp_dict
     @staticmethod
     def get_mini_fields():
         """返回精简信息字段"""
-        return [SystemDept.id,SystemDept.name,SystemDept.parentId,SystemDept.sort,SystemDept.leaderUserId,SystemDept.phone,SystemDept.email,SystemDept.tenantId,SystemDept.status]
+        return [SystemDept.id,SystemDept.name,SystemDept.parentId,SystemDept.sort]

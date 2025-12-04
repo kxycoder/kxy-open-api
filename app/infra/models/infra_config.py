@@ -1,6 +1,6 @@
 from app.database import Base
 from app.common.base_entity import BaseEntity
-from sqlalchemy import Column, DateTime, Integer, String, BigInteger
+from sqlalchemy import Column, DateTime, Integer, String, Boolean
 
 class InfraConfig(BaseEntity, Base):
     def __init__(self):
@@ -13,7 +13,7 @@ class InfraConfig(BaseEntity, Base):
     name = Column('name',String(100), comment='参数名称')
     key = Column('config_key',String(100), comment='参数键名')
     value = Column('value',String(500), comment='参数键值')
-    visible = Column('visible',Integer, comment='是否可见')
+    visible = Column('visible',Boolean, comment='是否可见')
     remark = Column('remark',String(500), comment='备注')
     creator = Column('creator',String(64), comment='创建者')
     createTime = Column('create_time',DateTime, comment='创建时间')

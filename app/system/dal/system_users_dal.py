@@ -111,7 +111,7 @@ class SystemUsersDal(MyBaseDal[SystemUsers]):
     async def UpdateUserStatus(self,userid,status):
         await self.UpdateFields([SystemUsers.id==userid],{"status":status})
     @ignore_filter
-    async def AddUser(self,username,nickName,password,contactMobile,tenantId)->SystemUsers:
+    async def AddUser(self,username,nickName,password,contactMobile,tenantId,**args)->SystemUsers:
         entity = SystemUsers()
         entity.username = username
         entity.nickname = nickName
@@ -120,7 +120,13 @@ class SystemUsersDal(MyBaseDal[SystemUsers]):
         entity.status = 0
         entity.deleted = 0
         entity.tenantId = tenantId
-        
+
+        entity.remark= args.get('remark')
+        entity.deptId= args.get('deptId')
+        entity.email= args.get('email')
+        entity.mobile= args.get('phone')
+        entity.sex= args.get('sex',1)
+        entity.avatar= args.get('avatar')
         await self.Insert(entity)
         return entity
     @ignore_filter

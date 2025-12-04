@@ -4,8 +4,8 @@ from kxy.framework.base_config import BaseConfig
 
 
 class Config(BaseConfig):
-    AppName = 'kxy.open.api'
-    SystemCode = 'CRM'
+    AppName = 'arch.aicoding.api'
+    SystemCode = 'aicoding'
     '''应用名称'''
     LOG_LEVEL = logging.INFO
     '''日志级别'''
@@ -17,7 +17,7 @@ class Config(BaseConfig):
     REDIS_PASSWORD=None
     REDIS_DB=1
     # 假设JWT的密钥和算法
-    JWT_SECRET_KEY = "We8!@rdXls&_s=+%"
+    JWT_SECRET_KEY = "We1!@rdXls&_S=-%"
     JWT_ALGORITHM = "HS256"
     wx_appid=''
     wx_secret=''
@@ -32,7 +32,7 @@ class Config(BaseConfig):
     BackEndPrefix = 'admin-api'
 
 class DevConfig(Config):
-    mysql_url = 'mysql+aiomysql://myfriend:123456@192.168.15.172:3306/kxy-open?autocommit=False'
+    mysql_url = 'mysql+aiomysql://myfriend:123456@192.168.15.172:3306/ai-coding?autocommit=False'
     # normal_mysql_url = 'mysql+pymysql://myfriend:123456@192.168.15.172:3306/ant_demo?autocommit=True'
     AUTH_URL = ''
     REDIS_HOST = '127.0.0.1'
@@ -57,7 +57,7 @@ class TestConfig(Config):
 class ProductionConfig(Config):
     LOG_LEVEL = logging.INFO
     ENV_NAME = 'production'
-    mysql_url = 'mysql+aiomysql://myfriend:123456@192.168.15.172:3306/kxy-open?autocommit=False'
+    mysql_url = 'mysql+aiomysql://myfriend:123456@192.168.15.172:3306/ai-coding?autocommit=False'
     
 env = os.environ.get("WORK_ENV")
 print("WORK_ENV:", env)

@@ -23,8 +23,14 @@ class VoSocialUser(BaseModel):
     code: Optional[str] = Field(title="code",default="")
     state: Optional[str] = Field(title="state",default="")
     avatar: Optional[str] = Field(title="头像",default="")
+    qyId: Optional[str] = Field(title="企业微信id",default="")
+    tenantId: Optional[int] = Field(title="租户编号",default=0)
+    phone: Optional[str] = Field(title="手机号",default="")
+    email: Optional[str] = Field(title="邮箱",default="")
+    department: Optional[str] = Field(title="部门",default="")
 # {"type":"20","code":"06562527cabf33b9a88d4dd601a46bea","state":"4789fe9dd387443e996d9c14e5398289"}
 class VoSocialAuthRedirect(BaseModel):
     type: Optional[str] = Field(title="类型")
-    code: Optional[str] = Field(title="code")
-    state: Optional[str] = Field(title="state")
+    code: Optional[str] = Field(None, title="code")
+    state: Optional[str] = Field(None, title="state")
+    token: Optional[str] = Field(None, title="token")

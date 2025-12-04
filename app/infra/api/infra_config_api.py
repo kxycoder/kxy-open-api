@@ -4,6 +4,7 @@ from app.common.result import Result
 from app.infra.dal.infra_config_dal import InfraConfigDal
 from app.common.filter import auth_schema, get_current_user, get_admin_user
 from app.infra.models.infra_config import InfraConfig
+from app.infra.services.config_service import ConfigService
 from app.system.services.excel_service import ExcelService
 router = APIRouter()
 from kxy.framework.kxy_logger import KxyLogger
@@ -40,8 +41,8 @@ async def infra_config_add(request: Request,current_user: str = Depends(get_admi
 @router.put("/config/update")
 @auth_schema("infra:config:update")
 async def infra_config_update(request: Request,current_user: str = Depends(get_admin_user)):
-    dal = InfraConfigDal(request.state.db)
-    data = await dal.UpdateByJsonData(await request.json())
+    dal = ConfigService(request.state.db)
+    data = await dal.update(await request.json())
     return Result.success(data)
 
 @router.post("/config/save")

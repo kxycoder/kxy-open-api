@@ -9,6 +9,7 @@ from app.common.filter import auth_module, get_current_user, get_admin_user, aut
 from app.system.models.system_users import SystemUsers
 from app.system.services.excel_service import ExcelService
 router = APIRouter()
+from app.system.services.orgnization_service import OrgnizationService
 from app.system.services.tenant_service import TenantService
 from app.system.services.user_service import UserService
 from kxy.framework.kxy_logger import KxyLogger
@@ -179,3 +180,10 @@ async def system_users_profile_get(request: Request,current_user: str = Depends(
     userSvc = UserService(request.state.db)
     data =await userSvc.GetProfile()
     return Result.success(data)
+
+@router.put('/user/sync-user')
+@auth_schema("system:user:sync")
+async def system_users_sync_user(request: Request,current_user: str = Depends(get_admin_user)):
+    svc = OrgnizationService(request.state.db)
+    await svc.sync_users_to_system_users()
+    return Result.success("同步成功")

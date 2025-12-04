@@ -1,5 +1,5 @@
-from app.system.api.types.vo_request import VoSocialUser
-from app.system.services.social.auth_token import AuthToken
+from app.system.api.types.vo_request import VoSocialAuthRedirect, VoSocialUser
+from app.system.services.social.base_auth import BaseAuth
 from .auth_enums import WeChatQiyeWeixinAuth
 import json
 import requests
@@ -8,15 +8,13 @@ from app.system.models.system_social_client import SystemSocialClient
 from kxy.framework.http_client import HttpClient
 from kxy.framework.kxy_logger import KxyLogger
 logger = KxyLogger.getLogger(__name__)
-class QiyeWeixin():
+class QiyeWeixin(BaseAuth):
     def __init__(self,source:WeChatQiyeWeixinAuth,config:SystemSocialClient):
-        self.source = source
-        self.config:SystemSocialClient = config
-        self.access_token = ''
+        super().__init__(source,config)
     def get_auth_url(self,state,):
         return f"{self.source.authorize()}?agentid={self.config.agentId}&appid={self.config.clientId}&lang=zh&state={state}&redirect_uri={self.config.redirectUri}"
     
-    async def get_user_info(self, auth_token:AuthToken):
+    async def get_user_info(self, auth_token:VoSocialAuthRedirect):
         """
         获取用户信息
         :param auth_token: 认证token
@@ -64,8 +62,9 @@ class QiyeWeixin():
             "source": str(self.source),
             "rawToken": token,
             "token": code,
+            "code": code
         }
-        return VoSocialUser(**result)
+        return VoSocialUser(**result,tenantId=self.config.tenantId)
 
     async def get_access_token(self):
         """
@@ -83,7 +82,7 @@ class QiyeWeixin():
         else:
             raise Exception(f"获取access_token失败: {result.get('errmsg')}")
 
-    async def user_info_url(self, auth_token:AuthToken):
+    async def user_info_url(self, auth_token:VoSocialAuthRedirect):
         """
         获取用户信息URL
         :param auth_token: 认证token
@@ -96,4 +95,4 @@ class QiyeWeixin():
         }
         '''
         access_token =await self.get_access_token()
-        return f"{self.source.user_info()}?access_token={access_token}&code={auth_token.access_code}"
+        return f"{self.source.user_info()}?access_token={access_token}&code={auth_token.code}"

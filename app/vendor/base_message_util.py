@@ -1,35 +1,67 @@
 from abc import abstractmethod
-from typing import Dict, Union, List
-from app import db
-from dto.site_setting_detail_dal import SiteSettingDetailDal
+import asyncio
+from typing import Dict, Union, List, Tuple
+from kxy.framework.kxy_logger import KxyLogger
+from kxy.framework.http_client import HttpClient
+from app.global_var import Gkey, Keys
+logger = KxyLogger.getLogger(__name__)
+from app.database import redisClient
 
-
+qywx_access_token = None
+static_app_key = None
+static_app_sec = None
 class MessageUtilBase(object):
-    def __init__(self, dic_type):
-        self.__init_config(dic_type)
-
-    def __init_config(self, dic_type):
-        """
-        Args:
-            app_key: 应用的 app_key
-            app_secret: 应用的 app_secret
-            robot_webhook: 群机器人的 webhook 地址
-            robot_secret: 群机器人的加签密钥
-            agent_id: 应用的 AgentId
-        """
-        brand_id, system_code = 1, 'CRM'
-        # setting_dal = SiteSettingDetailDal(None, db.session)
-        # self.confi_dict = setting_dal.GetDictSettings(brand_id, system_code, dic_type)
-        self.app_key = self.confi_dict['app_key']
-        self.app_secret = self.confi_dict['app_secret']
-        self.robot_webhook = self.confi_dict['robot_webhook']
-        self.robot_secret = self.confi_dict['robot_secret']
-        self.agent_id = self.confi_dict['agent_id']
-
+    def __init__(self,app_key,app_sec) -> None:
+        global static_app_key,static_app_sec
+        static_app_key = app_key
+        static_app_sec = app_sec
+    def get_app_key(self):
+        global static_app_key
+        return static_app_key
+    def get_app_sec(self):
+        global static_app_sec
+        return static_app_sec
+    @abstractmethod
+    def TypeName(self):
+        pass
     @abstractmethod
     def sync_department(self, content):
         pass
+    async def refresh_token_task(self):
+        global qywx_access_token
+        while True:
+            try: 
+                logger.debug(f'refresh_{self.TypeName}_token_task start')
+                await self.refresh_access_token()
+            except Exception as ex:
+                logger.error(f'refresh_token_task error:{ex}')
+            finally:
+                await asyncio.sleep(60)
 
+    async def refresh_access_token(self, force=0):
+        global qywx_access_token
+        key = Keys.QYWX_ACCESSTOKEN.value+':'+self.TypeName
+        if force == 0 or force == '0':
+            qywx_access_token = await redisClient.get_string(key)
+            if qywx_access_token is not None:
+                realKey = redisClient.gen_key(key)
+                ttl = await redisClient.client.ttl(realKey)
+                if ttl > 600:
+                    return
+
+        logger.info(f"refresh_{self.TypeName}_access_token")
+        qywx_access_token,expires_in = await self.get_access_token()
+        if qywx_access_token:
+            await redisClient.set(key, qywx_access_token,expires_in)
+            logger.info(f"refresh_{self.TypeName}_access_token success, expires_in:{expires_in}")
+        else:
+            logger.error(f"refresh_{self.TypeName}_access_token failed")
+    @abstractmethod
+    async def get_access_token(self)->Tuple[str,int]:
+        pass
+    def _get_access_token(self):
+        global qywx_access_token
+        return qywx_access_token
     @abstractmethod
     def send_work_text(self, user_ids: Union[str, List[str]], content: str,
                        dept_ids: Union[str, List[str]] = []) -> Dict:
@@ -114,4 +146,20 @@ class MessageUtilBase(object):
             single_title: 整体跳转时的标题（单个按钮）
             single_url: 整体跳转时的链接（单个按钮）
         """
+        pass
+    @abstractmethod
+    async def list_departments(self, department_id=None):
+        """
+        获取部门列表
+
+        Args:
+            department_id: 部门ID，不填则获取所有部门
+
+        Returns:
+            Dict: {"errcode": int, "errmsg": str, "departments": [{"id": Any, "name": str, "parentId": Any}]}
+        """
+        pass
+    @abstractmethod
+    async def list_users(self, department_id=1, fetch_child=1):
+        "获取用户列表"
         pass

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 class ITenantService(ABC):
     @abstractmethod
-    async def Register(self, registData):
+    async def RegisteTenant(self, registData):
         pass
 
     @abstractmethod
@@ -29,6 +29,6 @@ class ITenantService(ABC):
         pass
 
     @abstractmethod
-    async def GetPackageCategory(self, categoryId, packageId):
+    async def GetPackageCategory(self, categoryName):
         pass
 

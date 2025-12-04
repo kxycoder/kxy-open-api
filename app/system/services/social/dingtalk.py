@@ -1,5 +1,4 @@
-from app.system.api.types.vo_request import VoSocialUser
-from app.system.services.social.auth_token import AuthToken
+from app.system.api.types.vo_request import VoSocialAuthRedirect, VoSocialUser
 from app.system.services.social.base_auth import BaseAuth
 from .auth_enums import DingTalkV2Auth
 import json
@@ -10,19 +9,18 @@ from kxy.framework.http_client import HttpClient
 
 class DingTalk(BaseAuth):
     def __init__(self,source:DingTalkV2Auth,config:SystemSocialClient):
-        self.source = source
-        self.config:SystemSocialClient = config
+        super().__init__(source,config)
     def get_auth_url(self,state,):
         return f"{self.source.authorize()}?response_type=code&appid={self.config.clientId}&scope=snsapi_login&state={state}&redirect_uri={self.config.redirectUri}"
     
-    async def get_user_info(self, auth_token:AuthToken):
+    async def get_user_info(self, auth_token:VoSocialAuthRedirect):
         """
         获取用户信息
         :param auth_token: 认证token
         :return: 用户信息
         """
 
-        code = auth_token.access_code
+        code = auth_token.code
         param = {"tmp_auth_code": code}
         url =await self.user_info_url(auth_token)
         # 发送POST请求获取用户信息
@@ -56,8 +54,9 @@ class DingTalk(BaseAuth):
             "source": str(self.source),
             "rawToken": token,
             "token": code,
+            "code": code,
         }
-        return VoSocialUser(**result)
+        return VoSocialUser(**result,tenantId=self.config.tenantId)
     @staticmethod
     def generate_dingtalk_signature(secret_key, timestamp):
         """
@@ -83,7 +82,7 @@ class DingTalk(BaseAuth):
         # URL编码处理
         return quote(base64_sign, safe='')
 
-    async def user_info_url(self, auth_token:AuthToken):
+    async def user_info_url(self, auth_token:VoSocialAuthRedirect):
         """
         获取用户信息URL
         :param auth_token: 认证token
