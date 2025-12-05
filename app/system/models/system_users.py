@@ -82,4 +82,4 @@ class SystemUsers(BaseEntity, Base):
     @staticmethod
     def get_mini_fields():
         """返回精简信息字段"""
-        return [SystemUsers.id,SystemUsers.username,SystemUsers.status,SystemUsers.nickname,SystemUsers.remark,SystemUsers.deptId,SystemUsers.postIds,SystemUsers.email,SystemUsers.mobile,SystemUsers.sex,SystemUsers.avatar,SystemUsers.loginIp,SystemUsers.loginDate,SystemUsers.tenantId]
+        return [SystemUsers.id,SystemUsers.username,SystemUsers.status,SystemUsers.nickname,SystemUsers.remark,SystemUsers.deptId,SystemUsers.postIds,SystemUsers.email,SystemUsers.mobile,SystemUsers.sex,SystemUsers.avatar,SystemUsers.loginIp,SystemUsers.loginDate,SystemUsers.tenantId,SystemUsers.createTime]

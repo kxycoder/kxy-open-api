@@ -9,6 +9,10 @@ class IBackGroundService(ABC):
         pass
 
     @abstractmethod
+    async def init_system():
+        pass
+
+    @abstractmethod
     async def send_message_task():
         pass
 

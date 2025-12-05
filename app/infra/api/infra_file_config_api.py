@@ -43,6 +43,7 @@ async def infra_file_config_add(request: Request,current_user: str = Depends(get
 async def infra_file_config_update(request: Request,current_user: str = Depends(get_admin_user)):
     dal = InfraFileConfigDal(request.state.db)
     data = await dal.UpdateByJsonData(await request.json())
+    await FileService(request.state.db).UpdateDeafultUploadConfig(data.id)
     return Result.success(data)
 
 @router.post("/file-config/save")

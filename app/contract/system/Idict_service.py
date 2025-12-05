@@ -16,3 +16,7 @@ class IDictService(ABC):
     async def AddDictDataByJson(self, jsonData):
         pass
 
+    @abstractmethod
+    async def SaveAll(self, jsonData):
+        pass
+

@@ -4,6 +4,7 @@ from typing import Optional
 class AuthToken(BaseModel):
     # 基础属性
     access_token: Optional[str] = None
+    token: Optional[str] = None
     expire_in: int = 0
     refresh_token: Optional[str] = None
     refresh_token_expire_in: int = 0

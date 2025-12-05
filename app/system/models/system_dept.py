@@ -3,6 +3,7 @@ from app.common.base_entity import BaseEntity
 from sqlalchemy import Column, DateTime, Integer, String, BigInteger
 from kxy.framework.filter import FilterTenant
 from kxy.framework.base_entity import JSONString
+from kxy.framework.base_entity import JSONString
 
 @FilterTenant('tenantId')
 class SystemDept(BaseEntity, Base):
@@ -15,6 +16,7 @@ class SystemDept(BaseEntity, Base):
     parentId = Column('parent_id',BigInteger, comment='父部门id')
     sort = Column('sort',Integer, comment='显示顺序')
     leaderUserId = Column('leader_user_id',BigInteger, comment='负责人')
+    defaultRoles = Column('default_roles',JSONString(255), comment='默认角色')
     defaultRoles = Column('default_roles',JSONString(255), comment='默认角色')
     phone = Column('phone',String(11), comment='联系电话')
     email = Column('email',String(50), comment='邮箱')
@@ -39,6 +41,7 @@ class SystemDept(BaseEntity, Base):
            'sort': self.sort,
            'leaderUserId': self.leaderUserId,
            'defaultRoles': self.defaultRoles,
+           'defaultRoles': self.defaultRoles,
            'phone': self.phone,
            'email': self.email,
            'status': self.status,
@@ -59,6 +62,7 @@ class SystemDept(BaseEntity, Base):
            'parentId': self.parentId,
            'sort': self.sort,
            'leaderUserId': self.leaderUserId,
+           'defaultRoles': self.defaultRoles,
            'defaultRoles': self.defaultRoles,
            'phone': self.phone,
            'email': self.email,

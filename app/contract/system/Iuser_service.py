@@ -21,7 +21,7 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
-    async def RefreshToken(self, refreshTokenInfo):
+    async def RefreshToken(self, refreshToken):
         pass
 
     @abstractmethod
@@ -29,7 +29,11 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
-    async def Login(self, phoneNumber, password):
+    async def Login(self, userName, password):
+        pass
+
+    @abstractmethod
+    async def LoginWithUserInfo(self, user):
         pass
 
     @abstractmethod
@@ -65,6 +69,10 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
+    async def GetUserRoles(self, userid):
+        pass
+
+    @abstractmethod
     async def GetUserMenu(self, clearCache=False):
         pass
 
@@ -90,5 +98,37 @@ class IUserService(ABC):
 
     @abstractmethod
     async def GetUserById(self, userId):
+        pass
+
+    @abstractmethod
+    async def GetProfile(self):
+        pass
+
+    @abstractmethod
+    async def GetSocialUserBinding(self):
+        pass
+
+    @abstractmethod
+    async def BindingSocialUser(self, jsonData):
+        pass
+
+    @abstractmethod
+    async def UnbindingSocialUser(self, jsonData):
+        pass
+
+    @abstractmethod
+    async def SocialAuthRedirect(self, type, redirectUri):
+        pass
+
+    @abstractmethod
+    async def GetAuthType(self, authType, redirectUri=''):
+        pass
+
+    @abstractmethod
+    async def RegisterSocialUser(self, authTypeMethod, userinfo):
+        pass
+
+    @abstractmethod
+    async def SocialLogin(self, data):
         pass
 

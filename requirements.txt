@@ -41,7 +41,7 @@ openpyxl==3.1.5
 lunardate==0.2.2
 alibabacloud_dysmsapi20170525==4.1.1
 pillow==11.2.1
-kxy-framework==1.4.7
+kxy-framework==1.4.10
 aioboto3==13.0.0
 asyncssh==2.14.2
 aioftp==0.22.3

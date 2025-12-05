@@ -25,6 +25,7 @@ class AuthSource(ABC):
         pass
 
 class AuthTypes(Enum):
+    EZR_LOGIN = 1
     DINGTALK = 20
     GITEE = 10
     DINGTALK_V2 = 20
@@ -134,3 +135,12 @@ class CodingAuth(AuthSource):
 
     def user_info(self):
         return "https://%s.coding.net/api/account/current_user"
+class EzrLoginAuth(AuthSource):
+    def authorize(self):
+        return "https://log-ops.ezrpro.cn/#/login"
+
+    def access_token(self):
+        return "http://log-ops.ezrpro.cn/api/auth"
+
+    def user_info(self):
+        return "http://log-ops.ezrpro.cn/api/auth"    

@@ -1,10 +1,17 @@
 from enum import Enum
 from app.config import config
 from kxy.framework.context import current_tenant_id
+
+# 添加用户系统工具类实例的全局变量
+user_system_util_instance = None
+user_system_channel = None
+
 class Keys(Enum):
     # todo 将所有的redis的key，其他的Key放在这里管理
     WX_ACCESSTOKEN=config.SystemCode+":WX:ACCESSTOKEN"
-    """KXY:WX:ACCESSTOKEN"""
+    QYWX_ACCESSTOKEN="USERSOURCE:ACCESSTOKEN"
+    '''USERSOURCE:ACCESSTOKEN'''
+   
     USER_API_TOKEN = config.SystemCode+":token:{}"
     """KXY:token:{USERID}"""
     USER_PERMISSION=config.SystemCode+':permission:{}:{}:{}:{}'
@@ -15,6 +22,8 @@ class Keys(Enum):
     '''KXY:RoleIds:{tenantId}:{USERID}'''
     USER_ROLES_ID = config.SystemCode+":RolesId:{}:{}"
     '''KXY:RoleIds:{tenantId}:{USERID}'''
+    CONFIG_VALUE = config.SystemCode+":config:{}"
+    '''配置缓存 {SystemCode}:config:{key}'''
     PUBLIC_DICTIONARY_CACHE_KEY= "{}:dictionary:{}"
     """字典：{systemcode}:dictionary:{dictype}"""
     PUBLIC_DICTIONARY_CACHE_TYPE_KEY="""{}:dictionary:{}:{}"""

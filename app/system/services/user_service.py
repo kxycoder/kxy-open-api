@@ -9,7 +9,7 @@ from app.common.auth import IsSuperAdmin
 from app.contract.types.user_vo import VoUserRole
 from app.common.crypto_util import Crypto
 from kxy.framework.friendly_exception import FriendlyException
-from app.system.api.types.vo_request import VoSocialAuthRedirect
+from app.system.api.types.vo_request import VoSocialAuthRedirect, VoSocialUser
 from app.system.dal.system_dept_dal import SystemDeptDal
 from app.system.dal.system_menu_dal import SystemMenuDal
 from app.system.dal.system_oauth2_access_token_dal import SystemOauth2AccessTokenDal
@@ -30,9 +30,11 @@ from app.system.models.system_users import SystemUsers
 from app.system.services.base_service import BaseService
 from app.system.dal.sys_users_dal import SysUsersDal
 from app.system.dal.system_user_role_dal import SystemUserRoleDal
-from app.system.services.social.auth_enums import AuthSource, AuthTypes, DingTalkAuth,DingTalkV2Auth, WeChatQiyeWeixinAuth
+from app.system.services.social.auth_enums import AuthSource, AuthTypes, DingTalkAuth,DingTalkV2Auth, EzrLoginAuth, WeChatQiyeWeixinAuth
 from app.system.services.social.auth_token import AuthToken
+from app.system.services.social.base_auth import BaseAuth
 from app.system.services.social.dingtalk import DingTalk
+from app.system.services.social.ezr_login import EZRSSO
 from app.system.services.social.qiye_weixin import QiyeWeixin
 from app.tools.wx_util import WxUtil
 from app.tools import utils
@@ -43,12 +45,15 @@ from jose import jwt
 from kxy.framework.mapper import Mapper
 from app.database import redisClient
 from kxy.framework.context import access_token,kxy_roles
+from app.contract.infra.Iconfig_service import IConfigService
 
 # https://docs.wechatpy.org/zh-cn/stable/
 class UserService(BaseService):
+    # 类变量，用于存储用户系统工具类实例，确保在整个应用中只初始化一次
+    user_system_util = None
+    
     def __init__(self,db:AsyncSession,**kwargs):
         super().__init__(db,**kwargs)
-
 
     async def LoginWx(self,code,sourceUser='',sourceId='',sourceType=''):
         dal=SysUsersDal(self.session)
@@ -336,20 +341,38 @@ class UserService(BaseService):
         elif auType == AuthTypes.WECHAT:
             source = WeChatQiyeWeixinAuth()
             return QiyeWeixin(source=source,config=config)
+        elif auType == AuthTypes.EZR_LOGIN:
+            source = EzrLoginAuth()
+            return EZRSSO(source=source,config=config)
         else:
             raise FriendlyException(f'暂不支持该第三方登录, {authType}')
+    async def RegisterSocialUser(self,authTypeMethod:BaseAuth,userinfo:VoSocialUser)->SystemUsers:
+        dal=SystemUsersDal(self.session)
+        user = await dal.AddUser(userinfo.username,userinfo.nickname,userinfo.phone,userinfo.phone,userinfo.tenantId,deptId=userinfo.department,email=userinfo.email,avatar = userinfo.avatar)
         
+        authType = authTypeMethod.config.socialType
+        defaultRoles = authTypeMethod.config.defaultRoles
+        socialUserInfo = await SystemSocialUserDal(self.session).AddByField(authType,userinfo)
+        bindingDal = SystemSocialUserBindDal(self.session)
+        await bindingDal.AddBinding(authType,socialUserInfo.id,user.id)
+        if userinfo.department:
+            departInfo = await SystemDeptDal(self.session).Get(userinfo.department)
+            if departInfo and departInfo.defaultRoles:
+                defaultRoles = departInfo.defaultRoles
+        if defaultRoles:
+            await self.AssignUserRole(VoUserRole(roleIds=defaultRoles,userId=user.id))
+        else:
+            raise FriendlyException('联合登录没有配置默认角色，无法给用户授予角色')
+        return user
     async def SocialLogin(self,data:VoSocialAuthRedirect):
         authType = await self.GetAuthType(data.type)
-        code = data.code
-        state = data.state
-        token = AuthToken(access_code=code)
-        userinfo =await authType.get_user_info(auth_token=token)
-        userinfo.state = state
-        userinfo.code = code
+        userinfo =await authType.get_user_info(data)
         socialUserInfo = await SystemSocialUserDal(self.session).GetByOpenId(data.type,userinfo.unionid)
         if not socialUserInfo:
-            raise FriendlyException('该用户不存在')
+            if authType.config.autoRegistor:
+                user = await self.RegisterSocialUser(authType,userinfo)
+            else:
+                raise FriendlyException('该用户不存在')
         bindingDal = SystemSocialUserBindDal(self.session)
         socialUserBindingInfo = await bindingDal.GetBySocial(data.type,socialUserInfo.id)
         if socialUserBindingInfo:
