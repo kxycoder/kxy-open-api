@@ -3,6 +3,7 @@ import json
 import time
 from typing import Dict, Union, List
 import requests
+from app.contract.types.department_vo import DepartmentVO
 from app.vendor.base_message_util import MessageUtilBase
 from kxy.framework.friendly_exception import FriendlyException
 from kxy.framework.kxy_logger import KxyLogger
@@ -11,12 +12,12 @@ logger = KxyLogger.getLogger(__name__)
 
 class DingTalkUtil(MessageUtilBase):
     TypeName='dingtalk'
-    def __init__(self,app_key,app_sec) -> None:
-        """
-        初始化钉钉消息发送类
-        """
-        super().__init__(app_key,app_sec)
-        self.url = 'https://oapi.dingtalk.com'
+    def __init__(self, appkey, appsecret):
+        self.appkey = appkey
+        self.appsecret = appsecret
+        self.platform = 'dingtalk'  # 添加平台标识
+        self._access_token = None
+        self._token_expire_time = 0
 
     async def get_access_token(self):
         url = f"{self.url}/gettoken?appkey={self.get_app_key()}&appsecret={self.get_app_sec()}"
@@ -291,7 +292,40 @@ class DingTalkUtil(MessageUtilBase):
         headers = {"Content-Type": "application/json"}
         response = requests.post(self.robot_webhook, headers=headers, data=json.dumps(data))
         return response.json()
-
+    def convert_to_standard_department(self, source_dept: dict) -> DepartmentVO:
+        """
+        将不同来源的部门数据转换为标准的DepartmentVO对象
+        
+        Args:
+            source_dept: 来源于不同系统的部门原始数据
+            
+        Returns:
+            DepartmentVO: 标准化的部门对象
+        """
+        # 根据不同平台做字段映射
+        
+        # 钉钉平台字段映射
+        dept_id = source_dept.get('dept_id')
+        dept_name = source_dept.get('name')
+        parent_id = source_dept.get('parent_id', 0)
+        
+        # 创建标准部门VO对象
+        department_vo = DepartmentVO(
+            id=dept_id,
+            name=dept_name,
+            parent_id=parent_id,
+            level=source_dept.get('level') or source_dept.get('order'),
+            principal_user_id=source_dept.get('principal_userid'),
+            principal_user_name=source_dept.get('principal_username'),
+            child_ids=source_dept.get('child_ids'),
+            dep_type=source_dept.get('dep_type') or source_dept.get('type'),
+            sort=source_dept.get('sort') or source_dept.get('order'),
+            status=0,  # 默认启用
+            creator="system",
+            updater="system",
+        )
+        
+        return department_vo
     async def list_departments(self, department_id=None):
         """
         获取部门列表
@@ -311,23 +345,15 @@ class DingTalkUtil(MessageUtilBase):
         response = await HttpClient.post(url, json=data)
         result = response.json()
         if result.get('errcode') != 0:
-            return result
+            raise FriendlyException(result.get('errmsg'))
 
         dept_list = result.get('result', {}).get('dept_list', [])
-        normalized_departments = [
-            {
-                "id": dept.get('dept_id'),
-                "name": dept.get('name'),
-                "parentId": dept.get('parent_id')
-            }
-            for dept in dept_list
-        ]
+        normalized_departments = []
+        for dept in dept_list:
+            normalized_dept = self.convert_to_standard_department(dept)
+            normalized_departments.append(normalized_dept)
 
-        return {
-            "errcode": result.get('errcode'),
-            "errmsg": result.get('errmsg'),
-            "departments": normalized_departments
-        }
+        return normalized_departments
 
     async def list_users(self, department_id=1, fetch_child=1):
         """

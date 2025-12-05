@@ -5,6 +5,7 @@ from typing import Dict, Union, List
 
 import requests
 
+from app.contract.types.department_vo import DepartmentVO, UserVO
 from app.vendor.base_message_util import MessageUtilBase
 from kxy.framework.friendly_exception import FriendlyException
 from kxy.framework.http_client import HttpClient
@@ -18,6 +19,7 @@ class WeChatWorkUtil(MessageUtilBase):
         初始化企业微信消息发送类
         """
         super().__init__(app_key,app_sec)
+        self.platform = 'wechat_work'  # 添加平台标识
         self.url = 'https://qyapi.weixin.qq.com'
 
     async def get_access_token(self):
@@ -215,8 +217,39 @@ class WeChatWorkUtil(MessageUtilBase):
             return user_id
         else:
             raise FriendlyException(result.get('errmsg'))
-
-    async def list_departments(self, department_id=None):
+    def convert_to_standard_department(self, source_dept: dict) -> DepartmentVO:
+        """
+        将不同来源的部门数据转换为标准的DepartmentVO对象
+        
+        Args:
+            source_dept: 来源于不同系统的部门原始数据
+            
+        Returns:
+            DepartmentVO: 标准化的部门对象
+        """
+        
+        dept_id = source_dept.get('id')
+        dept_name = source_dept.get('name')
+        parent_id = source_dept.get('parentid', 0)
+        # 创建标准部门VO对象
+        department_vo = DepartmentVO(
+            id=dept_id,
+            name=dept_name,
+            parent_id=parent_id,
+            level=source_dept.get('level') or source_dept.get('order'),
+            principal_user_id=source_dept.get('principal_userid'),
+            principal_user_name=source_dept.get('principal_username'),
+            child_ids=source_dept.get('child_ids'),
+            dep_type=source_dept.get('dep_type') or source_dept.get('type'),
+            sort=source_dept.get('sort') or source_dept.get('order'),
+            status=0,  # 默认启用
+            creator="system",
+            updater="system",
+            tenant_id=self.tenantId or 1
+        )
+        
+        return department_vo
+    async def list_departments(self, department_id=None)->List[DepartmentVO]:
         url = f'https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token={self._get_access_token()}'
         if department_id:
             url += f"&id={department_id}"
@@ -225,21 +258,12 @@ class WeChatWorkUtil(MessageUtilBase):
         if result.get('errcode') != 0:
             return result
 
-        normalized_departments = [
-            {
-                "id": dept.get('id'),
-                "name": dept.get('name'),
-                "parentId": dept.get('parentid'),
-                "leader": dept.get('department_leader')[0] if dept.get('department_leader') else '',
-            }
-            for dept in result.get('department', [])
-        ]
+        normalized_departments = []
+        for dept in result.get('department', []):
+            department_vo = await self.convert_to_standard_department(dept)
+            normalized_departments.append(department_vo)
 
-        return {
-            "errcode": result.get('errcode'),
-            "errmsg": result.get('errmsg'),
-            "departments": normalized_departments
-        }
+        return normalized_departments
 
     async def list_users(self, department_id=1, fetch_child=1):
         url = f'https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token={self._get_access_token()}&department_id={department_id}&fetch_child={fetch_child}'
@@ -247,4 +271,25 @@ class WeChatWorkUtil(MessageUtilBase):
         result = response.json()
         if result.get('errcode') != 0:
             raise FriendlyException('请重试')
-        return result
+        
+        users = []
+        for user_data in result.get('userlist', []):
+            user_vo = UserVO(
+                user_id=user_data.get('userid', ''),
+                username=user_data.get('userid', ''),
+                nickname=user_data.get('name', ''),
+                mobile=user_data.get('mobile'),
+                email=user_data.get('email'),
+                department_id=user_data.get('department', [None])[0] if user_data.get('department') else None,
+                position=user_data.get('position'),
+                is_leader=bool(user_data.get('isleader', 0)),
+                avatar=user_data.get('avatar'),
+                gender=user_data.get('gender'),
+                status=0 if user_data.get('status') == 1 else 1,  # 微信企业号中1表示已激活(在职)，0表示禁用(离职)
+                remark=user_data.get('alias'),  # 使用别名作为备注
+                creator="system",
+                updater="system"
+            )
+            users.append(user_vo)
+            
+        return users

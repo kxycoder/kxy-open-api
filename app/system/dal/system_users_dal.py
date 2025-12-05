@@ -23,7 +23,9 @@ class SystemUsersDal(MyBaseDal[SystemUsers]):
         fil.append(SystemUsers.deleted == 0)
         search_text=search.get('search')
         for k,v in search.items():
-            if hasattr(SystemUsers,k) and v:
+            if k=='username':
+                fil.append(or_(SystemUsers.username.ilike(f'%{v}%'),SystemUsers.nickname.ilike(f'%{v}%')))
+            elif hasattr(SystemUsers,k) and v:
                 fil.append(getattr(SystemUsers,k).ilike(f'%{v}%'))
         if search_text:
             if re.search(r"^(\d)*$", search_text):

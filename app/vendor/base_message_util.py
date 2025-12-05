@@ -3,6 +3,7 @@ import asyncio
 from typing import Dict, Union, List, Tuple
 from kxy.framework.kxy_logger import KxyLogger
 from kxy.framework.http_client import HttpClient
+from app.contract.types.department_vo import DepartmentVO, UserVO
 from app.global_var import Gkey, Keys
 logger = KxyLogger.getLogger(__name__)
 from app.database import redisClient
@@ -148,7 +149,7 @@ class MessageUtilBase(object):
         """
         pass
     @abstractmethod
-    async def list_departments(self, department_id=None):
+    async def list_departments(self, department_id=None)->List[DepartmentVO]:
         """
         获取部门列表
 
@@ -160,6 +161,6 @@ class MessageUtilBase(object):
         """
         pass
     @abstractmethod
-    async def list_users(self, department_id=1, fetch_child=1):
+    async def list_users(self, department_id=1, fetch_child=1)->List[UserVO]:
         "获取用户列表"
         pass
